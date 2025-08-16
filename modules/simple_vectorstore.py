@@ -108,6 +108,24 @@ class SimpleVectorStore:
     def get_document_count(self) -> int:
         """Get the total number of documents."""
         return len(self.documents)
+    
+    def as_retriever(self, **kwargs):
+        """Create a retriever interface compatible with LangChain."""
+        return SimpleRetriever(self)
+    
+    class SimpleRetriever:
+        """Simple retriever that implements the LangChain retriever interface."""
+        
+        def __init__(self, store):
+            self.store = store
+        
+        def get_relevant_documents(self, query):
+            """Get relevant documents for a query."""
+            return self.store.similarity_search(query, k=5)
+        
+        def invoke(self, query):
+            """Invoke the retriever (alias for get_relevant_documents)."""
+            return self.get_relevant_documents(query)
 
 def create_simple_vector_store(docs: List[Document], embedding_model):
     """

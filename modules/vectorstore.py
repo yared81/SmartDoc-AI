@@ -38,13 +38,16 @@ def create_vector_store(docs: List[Document]):
     print(f"Extracted {len(texts)} text chunks")
     
     try:
-        # Try to use Hugging Face embeddings
+        # Use a lightweight model that downloads at runtime
         print("Attempting to use Hugging Face embeddings...")
+        # Use a smaller, faster model that's under 100MB
         embedding_model = HuggingFaceEmbeddings(
-            model_name="all-MiniLM-L6-v2",
-            model_kwargs={'device': 'cpu'}
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'},
+            cache_folder=None,  # Don't cache locally
+            local_files_only=False  # Allow downloading at runtime
         )
-        print("Using Hugging Face embeddings.")
+        print("Using Hugging Face embeddings with runtime loading.")
     except Exception as e:
         print(f"Hugging Face model failed: {e}")
         print("Falling back to local embeddings...")
@@ -85,8 +88,8 @@ def create_vector_store(docs: List[Document]):
 
 class LocalEmbeddings:
     """
-    Simple local embedding model that doesn't require internet.
-    Creates basic vector representations for testing purposes.
+    Vercel-optimized lightweight embedding model.
+    Creates simple vector representations without heavy dependencies.
     """
     
     def __init__(self, dimensions=384):

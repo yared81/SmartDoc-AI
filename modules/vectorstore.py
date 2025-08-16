@@ -1,19 +1,19 @@
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from typing import List
+from typing import List, Any
 from langchain_core.documents import Document
 import numpy as np
 
 def create_vector_store(docs: List[Document]):
     """
-    Creates a Chroma vector store from a list of documents.
-    Uses local embeddings to avoid network issues.
+    Creates a vector store from a list of documents.
+    Uses ChromaDB if possible, falls back to SQLite-independent alternatives.
 
     Args:
         docs: A list of Document objects (chunks).
 
     Returns:
-        A Chroma vector store instance.
+        A vector store instance (ChromaDB or fallback).
     """
     if not docs:
         raise ValueError("No documents provided to create vector store")
@@ -65,6 +65,13 @@ def create_vector_store(docs: List[Document]):
                 # If import fails, try to create it inline
                 print(f"Import failed: {import_error}. Creating inline simple vector store...")
                 return _create_inline_vector_store(docs, embedding_model)
+        elif "groq_api_key" in str(e).lower() or "api_key" in str(e).lower():
+            raise Exception(
+                "GROQ_API_KEY not found! Please add it to Streamlit Cloud secrets:\n"
+                "1. Go to your app's Settings → Secrets\n"
+                "2. Add: GROQ_API_KEY = 'your_actual_api_key_here'\n"
+                "3. Wait 1-2 minutes for it to propagate"
+            )
         else:
             raise Exception(f"Failed to create vector store: {e}")
 

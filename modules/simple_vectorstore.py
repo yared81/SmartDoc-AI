@@ -20,6 +20,20 @@ class SimpleRetriever:
     def invoke(self, query):
         """Invoke the retriever (alias for get_relevant_documents)."""
         return self.get_relevant_documents(query)
+    
+    def __or__(self, other):
+        """Support for the | operator used in LangChain chains."""
+        if callable(other):
+            # If other is a function, apply it to our results
+            return lambda query: other(self.get_relevant_documents(query))
+        else:
+            raise TypeError(f"Unsupported operation: {type(other)}")
+    
+    def __str__(self):
+        return f"SimpleRetriever(store={type(self.store).__name__})"
+    
+    def __repr__(self):
+        return self.__str__()
 
 class SimpleVectorStore:
     """

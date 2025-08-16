@@ -6,6 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 # Import ChatGroq instead of HuggingFaceHub
 from langchain_groq import ChatGroq
 from langchain.retrievers import ContextualCompressionRetriever
+from typing import Any
 
 def _format_docs(docs: list) -> str:
     """
@@ -13,9 +14,10 @@ def _format_docs(docs: list) -> str:
     """
     return "\n\n".join(doc.page_content for doc in docs)
 
-def create_rag_chain(retriever: ContextualCompressionRetriever):
+def create_rag_chain(retriever: Any):
     """
     Creates the full RAG chain for question answering using Groq.
+    Handles both advanced retrievers and fallback retrievers.
 
     Args:
         retriever: The retriever instance to fetch relevant documents.
@@ -26,10 +28,21 @@ def create_rag_chain(retriever: ContextualCompressionRetriever):
     # 1. Initialize the LLM from Groq
     # We'll use Llama 3, which is very fast on Groq.
     # The API key is automatically read from the GROQ_API_KEY environment variable.
-    llm = ChatGroq(
-        temperature=0, 
-        model_name="llama3-8b-8192"
-    )
+    try:
+        llm = ChatGroq(
+            temperature=0, 
+            model_name="llama3-8b-8192"
+        )
+    except Exception as e:
+        if "groq_api_key" in str(e).lower() or "api_key" in str(e).lower():
+            raise Exception(
+                "GROQ_API_KEY not found! Please add it to Streamlit Cloud secrets:\n"
+                "1. Go to your app's Settings → Secrets\n"
+                "2. Add: GROQ_API_KEY = 'your_actual_api_key_here'\n"
+                "3. Wait 1-2 minutes for it to propagate"
+            )
+        else:
+            raise Exception(f"Error initializing Groq LLM: {e}")
 
     # 2. Create the enhanced prompt template for better context understanding
     prompt_template = """

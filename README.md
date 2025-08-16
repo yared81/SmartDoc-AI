@@ -84,7 +84,7 @@ streamlit run app.py
 
 ## 🎨 User Interface
 
-### **Premium Design**
+### **Great Design**
 - **Glassmorphism**: Modern, professional aesthetic
 - **Responsive Layout**: Works perfectly on all devices
 - **Intuitive Navigation**: User-friendly interface for all skill levels
@@ -130,11 +130,7 @@ We welcome contributions! Please see our contributing guidelines:
 2. **Create a feature branch**
 3. **Make your changes**
 4. **Submit a pull request**
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
+ 
 ## 🆘 Support
 
 ### **Common Issues**
@@ -163,11 +159,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Scalable Architecture**: Handles growing document collections
 - **Professional UI**: Suitable for business and enterprise use
 - **Reliable Performance**: Consistent, accurate results every time
-
----
-
-**Built with ❤️ using Streamlit, LangChain, and Groq**
-
-**Transform your workflow today with SmartDoc AI! 🚀**
-
  

@@ -59,10 +59,11 @@ def create_vector_store(docs: List[Document]):
             try:
                 # Import and use the simple vector store
                 from .simple_vectorstore import create_simple_vector_store
+                print("Using SQLite-independent simple vector store...")
                 return create_simple_vector_store(docs, embedding_model)
-            except ImportError:
+            except ImportError as import_error:
                 # If import fails, try to create it inline
-                print("Creating inline simple vector store...")
+                print(f"Import failed: {import_error}. Creating inline simple vector store...")
                 return _create_inline_vector_store(docs, embedding_model)
         else:
             raise Exception(f"Failed to create vector store: {e}")
@@ -93,18 +94,23 @@ def _create_inline_vector_store(docs, embedding_model):
             return self.documents[:k]
         
         def as_retriever(self, **kwargs):
-            # Create a simple retriever
-            class SimpleRetriever:
-                def __init__(self, store):
-                    self.store = store
+            # Import the SimpleRetriever from simple_vectorstore
+            try:
+                from .simple_vectorstore import SimpleRetriever
+                return SimpleRetriever(self)
+            except ImportError:
+                # Fallback inline retriever if import fails
+                class InlineRetriever:
+                    def __init__(self, store):
+                        self.store = store
+                    
+                    def get_relevant_documents(self, query):
+                        return self.store.similarity_search(query, k=5)
+                    
+                    def invoke(self, query):
+                        return self.get_relevant_documents(query)
                 
-                def get_relevant_documents(self, query):
-                    return self.store.similarity_search(query, k=5)
-                
-                def invoke(self, query):
-                    return self.get_relevant_documents(query)
-            
-            return SimpleRetriever(self)
+                return InlineRetriever(self)
     
     return InlineVectorStore(docs, embedding_model)
 

@@ -1,5 +1,4 @@
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List
 from langchain_core.documents import Document
 import numpy as np
@@ -37,30 +36,12 @@ def create_vector_store(docs: List[Document]):
     
     print(f"Extracted {len(texts)} text chunks")
     
-    try:
-        # Use a lightweight model that downloads at runtime
-        print("Attempting to use Hugging Face embeddings...")
-        # Use a smaller, faster model that's under 100MB
-        embedding_model = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={'device': 'cpu'},
-            cache_folder=None,  # Don't cache locally
-            local_files_only=False  # Allow downloading at runtime
-        )
-        print("Using Hugging Face embeddings with runtime loading.")
-    except Exception as e:
-        print(f"Hugging Face model failed: {e}")
-        print("Falling back to local embeddings...")
-        
-        # Fallback: Create simple local embeddings
-        embedding_model = LocalEmbeddings()
+    # Use lightweight local embeddings for Vercel deployment
+    print("Using lightweight local embeddings for Vercel deployment...")
+    embedding_model = LocalEmbeddings()
+    print("Local embeddings initialized successfully.")
     
     try:
-        # Test the embedding model
-        print("Testing embedding model...")
-        test_embedding = embedding_model.embed_query("test")
-        print(f"Test embedding generated: {len(test_embedding)} dimensions")
-        
         # Create the vector store from the documents and embedding model
         print("Creating Chroma vector store...")
         vectorstore = Chroma.from_documents(
@@ -73,17 +54,6 @@ def create_vector_store(docs: List[Document]):
         
     except Exception as e:
         print(f"Error creating vector store: {e}")
-        print("Attempting to debug embedding issue...")
-        
-        # Debug: Check what's happening with embeddings
-        try:
-            test_embeddings = embedding_model.embed_documents(texts[:1])
-            print(f"Debug: Generated {len(test_embeddings)} test embeddings")
-            if test_embeddings:
-                print(f"Debug: First embedding has {len(test_embeddings[0])} dimensions")
-        except Exception as debug_e:
-            print(f"Debug: Embedding test failed: {debug_e}")
-        
         raise Exception(f"Failed to create vector store: {e}")
 
 class LocalEmbeddings:

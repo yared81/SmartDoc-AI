@@ -1193,21 +1193,7 @@ else:
                     # Store document sources in session state
                     st.session_state.document_sources = document_sources
                     
-                    # Debug: Show what documents are being processed
-                    st.info(f"""
-                    **🔍 Debug Info:**
-                    - **Total documents to process**: {len(all_docs)}
-                    - **Document sources**: {list(document_sources.keys())}
-                    - **Old data cleared**: ✅
-                    - **Memory reset**: ✅
-                    - **Previous documents**: None (cleared)
-                    """)
-                    
-                    # Verify no old documents remain
-                    if hasattr(st.session_state, 'documents') and st.session_state.documents:
-                        st.warning(f"⚠️ Warning: {len(st.session_state.documents)} old documents still in memory!")
-                    else:
-                        st.success("✅ Memory completely cleared - no old documents remain")
+                    # Process documents silently
                     
                     # Chunk documents
                     status_text.text("✂️ Chunking documents...")
@@ -1222,14 +1208,6 @@ else:
                     vector_store = create_vector_store(chunks)
                     st.session_state.vector_store = vector_store
                     
-                    # Verify vector store contents
-                    try:
-                        # Test the vector store with a simple query
-                        test_results = vector_store.similarity_search("test", k=1)
-                        st.success(f"✅ Vector store verified: {len(test_results)} test results")
-                    except Exception as e:
-                        st.error(f"❌ Vector store verification failed: {e}")
-                    
                     # Create retriever and RAG chain
                     status_text.text("🔗 Building RAG system...")
                     progress_bar.progress(90)
@@ -1239,26 +1217,8 @@ else:
                     st.session_state.documents = all_docs
                     st.session_state.processed = True
                     
-                    # Verify RAG system is using correct documents
-                    st.success(f"""
-                    **🎉 AI Intelligence Successfully Activated!**
-                    
-                    **Your documents are now powered by enterprise-grade AI:**
-                    - 📄 **Documents Processed**: {len(document_sources)}
-                    - ✂️ **Intelligence Chunks**: {len(chunks)}
-                    - 🧠 **AI Engine**: Ready & Active
-                    - 💬 **Conversation Memory**: Enabled
-                    
-                    **Document Sources:**
-                    {chr(10).join([f"- {source}: {info['type']} ({info['chunks']} chunks)" for source, info in document_sources.items()])}
-                    
-                    **🔍 Verification:**
-                    - **Vector store chunks**: {len(chunks)}
-                    - **RAG chain ready**: ✅
-                    - **Memory cleared**: ✅
-                    
-                    **🚀 Ready to ask questions and discover insights!**
-                    """)
+                    # Show success message
+                    st.success("🎉 AI Intelligence Successfully Activated! Your documents are now ready for questions.")
                     
                     st.rerun()
                 else:
@@ -1266,19 +1226,7 @@ else:
                     
             except Exception as e:
                 error_msg = str(e)
-                if "MaxRetryError" in error_msg or "huggingface.co" in error_msg or "Failed to resolve" in error_msg:
-                    st.error("""
-                    **Network Error**: Unable to download AI models. 
-                    
-                    **Solutions:**
-                    1. Check your internet connection
-                    2. Try again in a few minutes
-                    3. If the problem persists, the Hugging Face servers may be temporarily unavailable
-                    
-                    **Note**: This app requires downloading AI models (~100MB) on first use.
-                    """)
-                else:
-                    st.error(f"Error processing documents: {error_msg}")
+                st.error(f"Error processing documents: {error_msg}")
                     
             finally:
                 # Clear progress indicators

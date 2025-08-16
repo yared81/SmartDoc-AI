@@ -1,4 +1,5 @@
 from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List
 from langchain_core.documents import Document
 import numpy as np
@@ -14,12 +15,8 @@ def create_vector_store(docs: List[Document]):
     Returns:
         A Chroma vector store instance.
     """
-    print("Creating vector store... This may take a moment.")
-    
     if not docs:
         raise ValueError("No documents provided to create vector store")
-    
-    print(f"Processing {len(docs)} documents...")
     
     # Extract text content from documents
     texts = []
@@ -28,32 +25,34 @@ def create_vector_store(docs: List[Document]):
             texts.append(doc.page_content)
         elif isinstance(doc, str):
             texts.append(doc)
-        else:
-            print(f"Warning: Document has no page_content: {type(doc)}")
     
     if not texts:
         raise ValueError("No text content found in documents")
     
-    print(f"Extracted {len(texts)} text chunks")
-    
-    # Use lightweight local embeddings for Vercel deployment
-    print("Using lightweight local embeddings for Vercel deployment...")
-    embedding_model = LocalEmbeddings()
-    print("Local embeddings initialized successfully.")
+    # Try to use better embeddings first, fallback to local if needed
+    try:
+        # Use a lightweight but effective embedding model
+        embedding_model = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'},
+            cache_folder=None,  # Don't cache locally
+            local_files_only=False  # Allow downloading at runtime
+        )
+        print("Using Hugging Face embeddings for better context understanding")
+    except Exception as e:
+        print(f"Falling back to local embeddings: {e}")
+        embedding_model = LocalEmbeddings()
     
     try:
         # Create the vector store from the documents and embedding model
-        print("Creating Chroma vector store...")
         vectorstore = Chroma.from_documents(
             documents=docs,
             embedding=embedding_model
         )
         
-        print("Vector store created successfully.")
         return vectorstore
         
     except Exception as e:
-        print(f"Error creating vector store: {e}")
         raise Exception(f"Failed to create vector store: {e}")
 
 class LocalEmbeddings:
@@ -64,7 +63,6 @@ class LocalEmbeddings:
     
     def __init__(self, dimensions=384):
         self.dimensions = dimensions
-        print(f"Using local embeddings with {dimensions} dimensions")
     
     def embed_documents(self, texts):
         """Create simple embeddings for documents."""
@@ -81,7 +79,6 @@ class LocalEmbeddings:
                 embedding = self._text_to_embedding(text)
             embeddings.append(embedding)
         
-        print(f"Generated {len(embeddings)} local embeddings")
         return embeddings
     
     def embed_query(self, text):

@@ -50,7 +50,7 @@ Create a `.env` file in the root directory:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 ```
-
+ 
 ### 4. **Run the Application**
 ```bash
 streamlit run app.py
@@ -159,4 +159,3 @@ We welcome contributions! Please see our contributing guidelines:
 - **Scalable Architecture**: Handles growing document collections
 - **Professional UI**: Suitable for business and enterprise use
 - **Reliable Performance**: Consistent, accurate results every time
- 
